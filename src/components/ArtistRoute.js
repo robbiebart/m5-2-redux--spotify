@@ -2,14 +2,11 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
+import { humanizeNumber } from "../Utils";
 
-import fetchArtistProfile from "../helpers/api-helpers";
+import { fetchArtistProfile } from "../helpers/api-helpers";
 
-import {
-  requestArtist,
-  receiveArtist,
-  receiveArtistError,
-} from "../../actions";
+import { requestArtist, receiveArtist, receiveArtistError } from "../actions";
 
 export default function ArtistRoute() {
   const accessToken = useSelector((state) => state.auth.token);
@@ -17,7 +14,7 @@ export default function ArtistRoute() {
   const artistStatus = useSelector((state) => state.artists.status);
   const accessStatus = useSelector((state) => state.auth.status);
 
-  const dispatch = useDisaptch();
+  const dispatch = useDispatch();
 
   const id = useParams();
   const artistId = id.artistId;
@@ -30,10 +27,11 @@ export default function ArtistRoute() {
 
     fetchArtistProfile(accessToken, artistId)
       .then((data) => {
+        console.log("before dispatch data", data);
         dispatch(receiveArtist(data));
       })
       .catch((err) => dispatch(receiveArtistError()));
-  }, [accessStatus]);
+  }, [accessToken]);
 
   if (currentArtist) {
     const {
@@ -43,14 +41,43 @@ export default function ArtistRoute() {
       genres: [firstGenre, secondGenre],
     } = currentArtist;
 
+    const readableNumber = humanizeNumber(total);
+
     return (
       <Wrapper>
-        <img src={primaryArtistImage} alt="artist image" />
+        <ArtistInfo>
+          <p>{name}</p>
+          <p>{readableNumber} followers</p>
+          <p>Tags</p>
+          <p>
+            {firstGenre}
+            {secondGenre}
+          </p>
+        </ArtistInfo>
+        <ArtistImg src={primaryArtistImage} alt="artist image" />
       </Wrapper>
     );
+  } else {
+    return <div>Loading...</div>;
   }
 }
 
 const Wrapper = styled.div`
-  background: black;
+  background: lightgray;
+  height: 100vh;
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto auto;
+`;
+
+const ArtistImg = styled.img`
+  grid-column-start: 2;
+  grid-row-start: 2;
+`;
+
+const ArtistInfo = styled.div`
+  grid-column-start: 2;
+  grid-row-start: 1;
 `;
